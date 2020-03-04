@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+import json
+import os
+
+def banshee():
+
+    # unfortunately banshee opens when you query it, even
+    # if not running. This solves that
+    bans = os.popen("ps -ef|grep -i banshee|grep -v grep").read().strip()
+    if not bans:
+        return None
+
+    state = os.popen("banshee --query-current-state").read().strip().split(":")
+
+    # check if music is playing in the first place
+    if state[1].strip() != 'playing':
+        return None
+    _run = os.popen("banshee --query-title").read().strip().split(":")
+    if not _run:
+        return None
+    data = _run[1].strip()
+    return data
+
+def spotify():
+    spot = os.popen("ps -ef|grep -i spotify|grep -v grep").read().strip()
+    if not spot:
+        return None
+
+    _run = os.popen("dbus-send --print-reply --session --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get string:'org.mpris.MediaPlayer2.Player' string:'Metadata'").read().split("\n")
+    song = _run[-12].split("string")
+    data = song[1][2:-1]
+    return data
+
+bansong = banshee()
+spotsong = spotify()
+
+if bansong:
+    print bansong
+if spotsong:
+    print spotsong

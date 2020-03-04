@@ -1,0 +1,30 @@
+#!/usr/bin/env python2
+
+from datetime import date, timedelta, datetime
+import sys
+
+if len(sys.argv) < 3:
+    sys.stderr.write("%s {YYYY-mm-dd} {YYYY-mm-dd} [0 empty to ignore weekeds]\n" % sys.argv[0])
+    sys.exit(3)
+
+try:
+    date1 = datetime.strptime(sys.argv[1], "%Y-%m-%d").date()
+    date2 = datetime.strptime(sys.argv[2], "%Y-%m-%d").date()
+except:
+    sys.stderr.write("Please ensure dates are in the format YYYY-mm-dd\n")
+    sys.exit(3)
+
+if date1 > date2:
+    latter_date = date1
+    earlier_date = date2
+else:
+    latter_date = date2
+    earlier_date = date1
+
+
+daygenerator = (earlier_date+ timedelta(x + 1) for x in xrange((latter_date - earlier_date).days))
+try:
+    sys.argv[3]
+    print "%d days" % sum(1 for day in daygenerator if day.weekday() < 5)
+except IndexError:
+    print "%d days" % sum(1 for day in daygenerator)

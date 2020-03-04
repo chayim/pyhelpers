@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+## quick and heinous script to tell me what's missing from a file - based on lines
+
+import os
+import sys
+from optparse import OptionParser
+
+p = OptionParser()
+p.add_option('-f', '--file1', dest='FILE1', help='First file to diff')
+p.add_option('-F', '--file2', dest='FILE2', help='Second file to diff')
+p.add_option('-d', '--delim', dest='DELIM', help='Delimiter to split each line')
+p.add_option('-c', '--column', dest='COLUMN', help='Column to compare', type='int')
+p.add_option('-i', '--direction', dest='DIRECTION', help='Show missing from either f1 or f2 (specify)', default='f1')
+p.add_option('-s', '--sort', dest='SORT', help='Set, to sort the outputs', action='store_true')
+opts, args = p.parse_args()
+
+if opts.DIRECTION not in ['f1', 'f2']:
+    sys.stderr.write('Direction must be either f1 or f2\n')
+    sys.exit(3)
+
+if opts.FILE1 is None or opts.FILE2 is None:
+    sys.stderr.write('Specify files to diff.\n')
+    sys.exit(3)
+
+if not os.path.isfile(opts.FILE1) or not os.path.isfile(opts.FILE2):
+    sys.stderr.write('Invalid file path\n')
+    sys.exit(3)
+
+f1 = open(opts.FILE1).read().strip().split('\n')
+f2 = open(opts.FILE2).read().strip().split('\n')
+
+if opts.DELIM:
+    f1_content = [f.split(opts.DELIM) for f in f1]
+    f2_content = [f.split(opts.DELIM) for f in f2]
+
+    if opts.COLUMN is not None:
+        f1_col = [f[opts.COLUMN] for f in f1_content]
+        f2_col = [f[opts.COLUMN] for f in f2_content]
+    else:
+        f1_col = f1_content
+        f2_col = f2_content
+
+if opts.DIRECTION == 'f1':
+    result = set(f1_col) - set(f2_col)
+else:
+    result = set(f2_col) - set(f1_col)
+
+res = list(result)
+if opts.SORT:
+    res.sort()
+
+for r in res:
+    print(r)

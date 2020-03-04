@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+
+import hashlib
+import os
+from _sha3 import sha3_224, sha3_256, sha3_384, sha3_512
+from functools import partial
+import sys
+import csv
+
+
+class Hash:
+
+    SUPPORTED_HASHES = ['sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'ripemd160', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512']
+
+    def sha1(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha1()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha224(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha224()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha256(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha256()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha384(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha384()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha512(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha512()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def ripemd160(self, filename):
+        with open(filename, mode='rb') as f:
+            d = hashlib.new('ripemd160')
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha3_224(self, filename):
+        hashlib.sha3_224 = sha3_224
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha3_224()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha3_256(self, filename):
+        hashlib.sha3_256 = sha3_256
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha3_256()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha3_384(self, filename):
+        hashlib.sha3_384 = sha3_384
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha3_384()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+    def sha3_512(self, filename):
+        hashlib.sha3_512 = sha3_512
+        with open(filename, mode='rb') as f:
+            d = hashlib.sha3_512()
+            for buf in iter(partial(f.read, 128), b''):
+                d.update(buf)
+        return d.hexdigest()
+
+
+    def do(self, filename):
+        d = {'path': filename}
+        for i in self.SUPPORTED_HASHES:
+            try:
+                _ = getattr(self, i)
+                d[i] = _(filename)
+            except IOError as e:
+                if e[0] == 13:
+                    return {}
+        return d
+
+if __name__ == '__main__':
+    if not len(sys.argv) == 2:
+        print("Usage: %s {{path}}" % sys.argv[0])
+        sys.exit(3)
+    h = Hash()
+    for root, dirs, files in os.walk(sys.argv[1]):
+        for f in files:
+            if f == 'hash_index.csv':
+                continue
+            d = h.do(os.path.join(root, f))
+            ordered = d.keys()
+            row = [d[o] for o in ordered]
+            print(d)
